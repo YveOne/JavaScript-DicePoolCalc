@@ -1,0 +1,116 @@
+<html>
+    <head>
+        <title>Dice Pool Calculation</title>
+        <script type="text/javascript" src="DicePoolCalc.js"></script>
+        <script type="text/javascript" src="examples.js"></script>
+    </head>
+    <body style="margin:50px;">
+        <select id="ExamplesSelect"></select> <input id="ZeroBasedCheckbox" type="checkbox"></input> zerobased
+        <div id="PseudoCode" style="width:600px;overflow-x:auto;word-wrap:nowrap;border:1px solid #222;margin-top:5px;padding:3px;"></div>
+        <div style="margin-top:5px;">
+            <div id="ResultGraph" style="float:left;margin-right:5px;"></div>
+            <div id="UsedFunction" style="width:295px;height:192px;overflow:auto;border:1px solid #222;padding:3px;	white-space:pre;"></div>
+            <div style="clear:both;"></div>
+        </div>
+        <div id="PipsListAll" style="width:600px;height:100px;overflow-y:auto;word-wrap:break-word;border:1px solid #222;margin-top:5px;padding:3px;"></div>
+        <div id="PipsListInfo" style="width:600px;height:100px;overflow-y:auto;word-wrap:break-word;border:1px solid #222;margin-top:5px;padding:3px;"></div>
+        <a href="DiceCalc.js" target="_blank">DiceCalc.js</a> | <a href="examples.js" target="_blank">examples.js</a> | (c) Yvonne Pautz (agita&#91;attt&#93;live&#91;dottt&#93;de)
+        <script type="text/javascript">
+
+var ExamplesSelect = document.getElementById("ExamplesSelect");
+var ZeroBasedCheckbox = document.getElementById("ZeroBasedCheckbox");
+var PseudoCode = document.getElementById("PseudoCode");
+var ResultGraph = document.getElementById("ResultGraph");
+var UsedFunction = document.getElementById("UsedFunction");
+var PipsListAll = document.getElementById("PipsListAll");
+var PipsListInfo = document.getElementById("PipsListInfo");
+
+function displayGraph(pipsData)
+{
+    var margin = 1;
+    var width = 300;
+    var height = 200;
+
+    var divOuter = document.createElement("div");
+    divOuter.setAttribute("style", "width:"+width+"px;height:"+height+"px;background:#222;");
+    var divInner = document.createElement("div");
+    divInner.setAttribute("style", "width:"+width+"px;height:"+height+"px;position:absolute;");
+    divOuter.appendChild(divInner);
+
+    var unitWidth = (width-margin) / pipsData.length - margin;
+    for(var i=0; i<pipsData.length; i++)
+    {
+        var unit = document.createElement("div");
+        unit.setAttribute("style", "position:absolute;margin:0px;width:0px;height:0px;background:#fff;");
+        unit.style.margin = margin+"px";
+        unit.style.width = unitWidth+"px";
+        unit.style.height = ((height-(margin*2))*pipsData[i])+"px";
+        unit.style.left = i * (unitWidth+margin);
+        unit.style.top = height-(margin*2) - ((height-(margin*2))*pipsData[i]);
+        divInner.appendChild(unit);
+    }
+    ResultGraph.innerHTML = "";
+    ResultGraph.appendChild(divOuter);
+}
+
+function arrayScale(arr)
+{
+    var brr = [];
+    var m = DPC.arrayMaxValue(arr);
+    for(var i=0; i<arr.length; i++)
+        brr.push(arr[i] / m);
+    return brr;
+}
+
+function escapeHtml(s) {
+    return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&rt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+for(var i=0; i<examples.length; i++)
+{
+    var option = document.createElement("option");
+    option.text = examples[i].title;
+    ExamplesSelect.add(option); 
+}
+
+function switchExample()
+{
+    var selI = ExamplesSelect.selectedIndex;
+    var zero = ZeroBasedCheckbox.checked;
+
+    var pipsAll = examples[selI].func(zero);
+    PipsListAll.innerHTML = "pipsAll("+pipsAll.length+"): "+JSON.stringify(pipsAll);
+
+    var pipsCounts = DPC.getPipsCounts(pipsAll);
+    var pipsPercent = DPC.getPipsCountsPercents(pipsCounts);
+
+    var pipsInfo = ["pipsInfo("+pipsCounts.length+"): "];
+    for(var i=0; i<pipsCounts.length; i++)
+    {
+        pipsInfo.push("<font style='color:#"+(pipsCounts[i]==0?"ccc":"000")+";'>"+i+":"+" "+pipsCounts[i]+"x ("+(Math.round(pipsPercent[i]*10000)/100)+"%)</font>");
+    }
+    PipsListInfo.innerHTML = pipsInfo.join("<br>");
+
+    pipsPercent = arrayScale(pipsPercent);
+    displayGraph(pipsPercent);
+
+    UsedFunction.innerHTML = escapeHtml(examples[selI].func+"");
+    PseudoCode.innerHTML = "PseudoCode: "+examples[selI].pseudo;
+}
+
+ExamplesSelect.onchange = switchExample;
+ZeroBasedCheckbox.onchange = switchExample;
+switchExample();
+
+
+
+
+
+    </script>
+    </body>
+</html>
